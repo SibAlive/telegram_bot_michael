@@ -1,87 +1,27 @@
 from aiogram.filters import BaseFilter
-from aiogram.types import CallbackQuery, Message
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from enums import UserRole
-from services import UserService
+from aiogram.types import Message
 
 
-class LocaleFilter(BaseFilter):
-    async def __call__(self, callback: CallbackQuery, translations: dict[[str, str]]):
-        locales = list(translations.keys())
-        if not isinstance(callback, CallbackQuery):
-            raise ValueError(
-                f"LocaleFilter: expected 'CallbackQuery', got {type(callback).__name__}"
-            )
-        return callback.data in locales
-
-
-class ButtonCartFilter(BaseFilter):
-    async def __call__(self, message: Message, i18n: dict):
-        return message.text == i18n.get('button_cart')
-
-
-class ButtonCategoryFilter(BaseFilter):
-    async def __call__(self, message: Message, i18n: dict):
-        return message.text == i18n.get('button_category')
-
-
-class ButtonOrderFilter(BaseFilter):
-    async def __call__(self, message: Message, i18n: dict):
-        return message.text == i18n.get('button_order')
-
-
-class ButtonContactsFilter(BaseFilter):
-    async def __call__(self, message: Message, i18n: dict):
-        return message.text == i18n.get('button_contacts')
-
-
-class IsDelItemCallbackData(BaseFilter):
-    async def __call__(self, callback: CallbackQuery) -> bool | dict[str, int]:
-        if callback.data.endswith("_del"):
-            product_id_to_delete = int(callback.data[:-4])
-            return {'product_id_to_delete': product_id_to_delete}
-        return False
-
-
-class IsCorrectNameMessage(BaseFilter):
+class IsCorrectFullNameMessage(BaseFilter):
     async def __call__(self, message: Message) -> bool | dict[str, str]:
-        name = message.text.strip()
-        if name.isalpha() and len(name) >= 2:
-            return {'name': name}
+        full_name = message.text.strip().split()
+        if len(full_name) == 3:
+            if all(s.isalpha() and len(s) >= 2 for s in full_name):
+                return {'full_name': ' '.join(full_name)}
         return False
 
 
-class IsCorrectNumberMessage(BaseFilter):
+class IsCorrectAgeMessage(BaseFilter):
     async def __call__(self, message: Message) -> bool | dict[str, str]:
-        phone = message.text.strip()
-        if phone.isdigit() and phone.startswith('8') and len(phone) == 11:
-            return {'phone': phone}
+        age = message.text.strip()
+        if age.isdigit() and 0 < int(age) < 100:
+            return {'age': age}
         return False
 
 
-class UserRoleFilter(BaseFilter):
-    def __init__(self, *roles: str | UserRole):
-        if not roles:
-            raise ValueError("At least one role must be provided to UserRoleFilter.")
-
-        self.roles = frozenset(
-            UserRole(role) if isinstance(role, str) else role
-            for role in roles
-            if isinstance(role, (str, UserRole))
-        )
-
-        if not self.roles:
-            raise ValueError("No valid roles provided to `UserRoleFilter`.")
-
-    async def __call__(self, event: Message | CallbackQuery, session: AsyncSession) -> bool:
-        user = event.from_user
-        if not user:
-            return False
-
-        user_service = UserService(session)
-        role = await user_service.get_user_role(user_id=user.id)
-        if role is None:
-            return False
-
-        return role in self.roles
+class ChooseTime(BaseFilter):
+    async def __call__(self, callback_query):
+        # print(message)
+        if ':' in callback_query.data and callback_query.data.replace(':', '').isdigit():
+            return True
+        return False

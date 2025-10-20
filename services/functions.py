@@ -1,61 +1,25 @@
 import logging
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
 
-from services import ProductService, Product, CartService, CartItem
+from lexicon import RU
 
 
 logger = logging.getLogger(__name__)
 
 
-# Функция увеличивает индекс пользователя
-async def index_increase(state: FSMContext, session: AsyncSession) -> tuple[int, int]:
-    product_service = ProductService(session)
-    data = await state.get_data()
-    index = data.get("index")
-    category_id = data.get("category_id")
+def get_user_data(data: dict | list[dict]) -> str:
+    """Возвращает строку данных пользователя для подтверждения"""
+    if type(data) is list:
+        data = data[0]
 
-    if index < len(await product_service.get_products_by_category(category_id=category_id)) - 1:
-        index += 1
-    else:
-        index = 0
+    full_name = data.get("full_name")
+    phone_number = data.get("phone_number")
+    age = data.get("age")
 
-    products = await product_service.get_products_by_category(category_id=data['category_id'])
-    if products:
-        current_product = products[index]
-        data.update(
-            index=index,
-            current_product_id=current_product.id
-        )
-    # Сохраняем изменения
-    await state.set_data(data)
-
-    return category_id, index
-
-
-# Функция уменьшает индекс пользователя
-async def index_decrease(state: FSMContext, session: AsyncSession) -> tuple[int, int]:
-    product_service = ProductService(session)
-    data = await state.get_data()
-    index = data.get("index")
-    category_id = data.get("category_id")
-
-    if index == 0:
-        index = len(await product_service.get_products_by_category(category_id=category_id)) - 1
-    else:
-        index -= 1
-
-    products = await product_service.get_products_by_category(category_id=data['category_id'])
-    if products:
-        current_product: Product = products[index]
-        data.update(
-            index=index,
-            current_product_id=current_product.id
-        )
-    # Сохраняем изменения
-    await state.set_data(data)
-
-    return category_id, index
+    result = RU.get('user_data').format(full_name, phone_number, age)
+    return result
 
 
 # Функция конвертирует общую сумму корзины
@@ -104,26 +68,15 @@ async def get_confirm_text_from_db(user_service, user_id: int, i18n: dict) -> st
     return result
 
 
-def get_caption(product: Product) -> str:
-    price = f"{product.price:,}".replace(',', ' ')
-    caption = f"<i>{product.name}</i>\nЦена: <b>{price} сум</b>"
-    return caption
+def convert_times(date_times):
+    result = []
+    for date_time in date_times:
+        time = date_time.strftime("%H:%M")
+        result.append(time)
+    return result
 
 
-async def get_keyboard_bottom_text(
-        current_product_id: int,
-        i18n: dict,
-        session: AsyncSession,
-        user_id: int
-) -> str:
-
-    cart_service = CartService(session)
-    cart: list[CartItem] = await cart_service.get_cart_items(user_id)
-
-    result = i18n.get('add_to_cart')
-    qnty = 0
-    for item in cart:
-        if current_product_id == item.product_id:
-            qnty = item.quantity
-    result += f" ({qnty})"
+def convert_str_to_time(dt, time_str: str):
+    tm = datetime.strptime(time_str, "%H:%M").time()
+    result = datetime.combine(dt, tm)
     return result

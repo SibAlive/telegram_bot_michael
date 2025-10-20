@@ -15,8 +15,8 @@ DATABASE_URL = (
     f"{config.db.host}:{config.db.port}/{config.db.name}"
 )
 
-DATABASE_URL_FOR_FLASK = (
-    f"postgresql+psycopg2://"
+DATABASE_URL_FOR_ALEMBIC = (
+    f"postgresql://"
     f"{config.db.user}:{config.db.password}@"
     f"{config.db.host}:{config.db.port}/{config.db.name}"
 )
@@ -34,3 +34,4 @@ AsyncSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,  # Не закрывать объекты после коммита
 )
+

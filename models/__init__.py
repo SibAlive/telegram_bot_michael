@@ -1,1 +1,2 @@
-from .models import User, Category, Product, CartItem
+from .models import (Base, User, Finance, Point, Statistic,
+                     Appoint, Doctor, DoctorSlot)

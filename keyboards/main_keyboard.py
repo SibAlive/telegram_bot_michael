@@ -1,55 +1,38 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, BotCommand
 
-from enums import UserRole
+from lexicon import RU
 
 
-def create_main_keyboard(i18n):
+def create_main_menu():
+    """Создает главное меню"""
+    return [
+        BotCommand(
+            command="/start",
+            description=RU.get("/start_desc")
+        ),
+        BotCommand(
+            command="/finance",
+            description=RU.get("/finance_desc")
+        ),
+        BotCommand(
+            command="/call",
+            description=RU.get("/call_desc")
+        ),
+        BotCommand(
+            command="/appoint",
+            description=RU.get("/appoint_desc")
+        ),
+    ]
+
+
+def create_share_phone_keyboard():
     # Создаем объекты кнопок
-    button_cart = KeyboardButton(text=i18n.get("button_cart"))
-    button_category = KeyboardButton(text=i18n.get("button_category"))
-    button_order = KeyboardButton(text=i18n.get("button_order"))
-    button_contacts = KeyboardButton(text=i18n.get("button_contacts"))
+    share_phone_button = KeyboardButton(text=RU.get("share_phone"), request_contact=True)
 
     # Создаем объект клавиатуры
-    main_keyboard = ReplyKeyboardMarkup(keyboard=[
-        [button_cart, button_category],
-        [button_order],
-        [button_contacts]
-    ],
-    resize_keyboard=True,)
+    share_phone_keyboard = ReplyKeyboardMarkup(
+    keyboard=[[share_phone_button]],
+    resize_keyboard=True,
+    )
 
-    return main_keyboard
-
-
-def create_main_menu_commands(i18n: dict, role: UserRole):
-
-    if role == UserRole.USER:
-        return [
-            BotCommand(
-                command="/start",
-                description=i18n.get("/start_description"),
-            ),
-            BotCommand(
-                command="/lang",
-                description=i18n.get("/lang_description")
-            )
-        ]
-    elif role == UserRole.ADMIN:
-        return [
-            BotCommand(
-                command="/start",
-                description=i18n.get("/start_description"),
-            ),
-            BotCommand(
-                command="/lang",
-                description=i18n.get("/lang_description")
-            ),
-            BotCommand(
-                command='/ban',
-                description=i18n.get('/ban_description')
-            ),
-            BotCommand(
-                command='/unban',
-                description=i18n.get('/unban_description')
-            )
-        ]
+    return share_phone_keyboard

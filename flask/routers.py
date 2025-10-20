@@ -14,7 +14,7 @@ def index():
 """--- Категории ---"""
 def categories():
     categories_list = Category.query.all()
-    return render_template('categories.html', categories=categories_list)
+    return render_template('admin/categories.html', categories=categories_list)
 
 
 def new_category():
@@ -24,7 +24,7 @@ def new_category():
         if Category.query.filter_by(slug=form.slug.data).first():
             flash('Slug уже существует!', 'danger')
             return render_template(
-                'category_form.html',
+                'admin/category_form.html',
                 form=form,
                 title="Новая категория"
             )
@@ -40,7 +40,7 @@ def new_category():
         return redirect(url_for('categories'))
 
     return render_template(
-        'category_form.html',
+        'admin/category_form.html',
         form=form,
         title="Новая категория"
     )
@@ -58,7 +58,7 @@ def edit_category(id):
         if existing:
             flash('Slug уже используется другой категорией!', 'danger')
             return render_template(
-                'category_form.html',
+                'admin/category_form.html',
                 form=form,
                 title="Редактировать категорию"
             )
@@ -71,7 +71,7 @@ def edit_category(id):
         return redirect(url_for('categories'))
 
     return render_template(
-        'category_form.html',
+        'admin/category_form.html',
         form=form,
         title="Редактировать категорию"
     )
@@ -107,7 +107,7 @@ def products():
     categories_list = Category.query.filter_by(is_active=True).all()
 
     return render_template(
-        'products.html',
+        'admin/products.html',
         products=products_list,
         categories=categories_list,
         selected_category_id=category_id
@@ -133,7 +133,7 @@ def new_product():
         flash('Товар добавлен!', 'success')
         return redirect(url_for('products'))
 
-    return render_template('product_form.html', form=form, title="Новый товар")
+    return render_template('admin/product_form.html', form=form, title="Новый товар")
 
 
 def edit_product(id):
@@ -156,7 +156,7 @@ def edit_product(id):
 
     # Предзаполним текущие значения
     form.category_id.data = product.category_id or 0
-    return render_template('product_form.html', form=form, title="Редактировать товар")
+    return render_template('admin/product_form.html', form=form, title="Редактировать товар")
 
 
 def delete_product(id):

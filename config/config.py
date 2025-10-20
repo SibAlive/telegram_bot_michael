@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 class TgBot:
     token: str # Токен для доступа к телеграм-боту
     admin_ids: list[int] # Список пользователей с ролью админ
+    timezone: str # Часовой пояс
 
 
 @dataclass
@@ -107,7 +108,7 @@ def load_config(path: str | None = None) -> Config:
     logger.info("Configuration loaded successfully")
 
     return Config(
-        bot=TgBot(token=token, admin_ids=admin_ids),
+        bot=TgBot(token=token, admin_ids=admin_ids, timezone="Asia/Novosibirsk"),
         db=db,
         redis=redis,
         log=logg_settings,
