@@ -1,12 +1,12 @@
 from sqlalchemy import (Column, DateTime, func, Integer, ForeignKey,
-                        Text, BigInteger, CHAR, Boolean, String)
-from sqlalchemy.orm import relationship, declarative_base
+                        Text, BigInteger, CHAR, Boolean, String, false)
+from sqlalchemy.orm import relationship
 
+from site_flask import db
 
-Base = declarative_base()
 
 # Модель пользователя
-class User(Base):
+class User(db.Model):
     __tablename__ = "users"
 
     telegram_id = Column(BigInteger, primary_key=True, unique=True, nullable=False, index=True)
@@ -22,7 +22,7 @@ class User(Base):
         return f"<User(user_id={self.telegram_id}, fill_name={self.full_name}, phone_number={self.phone_number}, age={self.age})>"
 
 
-class Finance(Base):
+class Finance(db.Model):
     __tablename__ = "finance"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -30,6 +30,8 @@ class Finance(Base):
     income_points = Column(Integer, default=0)
     expense_points = Column(Integer, default=0)
     date = Column(DateTime(timezone=True), server_default=func.now())
+    # Флаг, необходимый для проверки отправлено ли сообщение об изменении баллов пользователю
+    notified = Column(Boolean, default=False, server_default=false(), nullable=False)
 
     user = relationship("User", back_populates="finance")
 
@@ -37,7 +39,7 @@ class Finance(Base):
         return f"<Finance(id={self.id} user_id={self.telegram_id})>"
 
 
-class Point(Base):
+class Point(db.Model):
     """points является не таблицей, а представлением (view)"""
     __tablename__ = "points"
     __table_args__ = {"info": {"is_view": True}} # в alembic/.env создаем функцию include_object
@@ -52,7 +54,7 @@ class Point(Base):
         return f"<Point(telegram_id={self.telegram_id}, total_points={self.total_points})>"
 
 
-class Statistic(Base):
+class Statistic(db.Model):
     __tablename__ = "statistics"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -67,7 +69,7 @@ class Statistic(Base):
         return f"<Statistic(id={self.id}, telegram_id={self.telegram_id}, message={self.message})>"
 
 
-class Appoint(Base):
+class Appoint(db.Model):
     __tablename__ = "appoints"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -76,13 +78,13 @@ class Appoint(Base):
     service = Column(CHAR(50), nullable=False)
     accepted = Column(Boolean, default=False, nullable=False) # Врач заполняет вручную после услуги
     # Флаг, необходимый для проверки отправлено ли сообщение с анкетой пользователю
-    notified = Column(Boolean, default=False, nullable=False)
+    notified = Column(Boolean, default=False, server_default=false(), nullable=False)
 
     user = relationship("User", back_populates="appoints")
     slot = relationship("DoctorSlot", back_populates="appointments")
 
 
-class Doctor(Base):
+class Doctor(db.Model):
     __tablename__ = "doctors"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -92,7 +94,7 @@ class Doctor(Base):
     slot = relationship("DoctorSlot", back_populates="doctor", cascade="all, delete-orphan")
 
 
-class DoctorSlot(Base):
+class DoctorSlot(db.Model):
     __tablename__ = "doctor_slots"
     id = Column(Integer, primary_key=True, autoincrement=True)
     doctor_id = Column(Integer, ForeignKey("doctors.id", ondelete="CASCADE"), nullable=False)

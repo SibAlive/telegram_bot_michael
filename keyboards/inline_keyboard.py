@@ -61,3 +61,44 @@ def create_keyboard_time(times):
     builder.adjust(2)
 
     return builder.as_markup()
+
+
+def create_keyboard_broadcast():
+    buttons = [
+        [InlineKeyboardButton(text='Сообщение', callback_data='message'),
+         InlineKeyboardButton(text='Фото', callback_data='photo')
+         ],
+        [InlineKeyboardButton(text='Видео', callback_data='video'),
+         InlineKeyboardButton(text='Документ', callback_data='document')
+         ],
+        [InlineKeyboardButton(text='Отмена', callback_data='cancel_broadcast')]
+    ]
+    inline_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return inline_keyboard
+
+
+def create_keyboard_affirm_broadcast():
+    buttons = [
+        [InlineKeyboardButton(text='Разослать', callback_data='broadcast_send')],
+        [InlineKeyboardButton(text='Отмена', callback_data='broadcast_send_cancel')]
+    ]
+    inline_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return inline_keyboard
+
+
+def create_keyboard_broadcast_caption():
+    buttons = [
+        [InlineKeyboardButton(text='Без описания', callback_data='no_caption'),
+         ]
+    ]
+    inline_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return inline_keyboard
+
+
+def create_keyboard_back_to_broadcast():
+    buttons = [
+        [InlineKeyboardButton(text='Назад', callback_data='back_to_broadcast'),
+         ]
+    ]
+    inline_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return inline_keyboard

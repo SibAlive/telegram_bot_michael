@@ -1,0 +1,19 @@
+{% macro date_filter_form(endpoint, params={}) %}
+{# Форма фильтрации по дате #}
+<form method="GET" class="mb-4">
+    <div class="d-flex align-items-center gap-2">
+        <label for="date_filter" class="form-label mb-0">Фильтр по дате:</label>
+        <input type="date"
+               id="date_filter"
+               name="date"
+               class="form-control w-auto"
+               value="{{ request.args.get('date', '') }}">
+        <button type="submit" class="btn btn-primary">Применить</button>
+        {% if request.args.get('date') %}
+        <div class="col-auto">
+            <a href="{{ url_for(endpoint, **params) }}" class="btn btn-outline-secondary">Сбросить</a>
+        </div>
+        {% endif %}
+    </div>
+</form>
+{% endmacro %}

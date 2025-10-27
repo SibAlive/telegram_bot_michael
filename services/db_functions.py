@@ -1,16 +1,21 @@
 import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, func
-from datetime import datetime, date, time, timedelta
+from datetime import datetime
 
 from models import User, Point, Statistic, Appoint, Doctor, DoctorSlot
+from config import Config, load_config
 
+
+config: Config = load_config()
 logger = logging.getLogger(__name__)
 
 
 class UserService:
     def __init__(self, session: AsyncSession):
         self.session = session
+        self.admin_ids = config.bot.admin_ids
 
     async def add_user(
             self,
@@ -67,6 +72,18 @@ class UserService:
         logger.info(f"telegram_id для пользователя {full_name} обновлено: {telegram_id}")
 
 
+    async def get_users_list_for_broadcast(self):
+        """Возвращает список пользователей для рассылки"""
+        result = await self.session.execute(
+            select(User.telegram_id)
+            .where(
+                User.telegram_id.notin_(self.admin_ids)
+            )
+        )
+        row = result.fetchall()
+        return [user_telegram_id for (user_telegram_id,) in row]
+
+
 class PointService:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -97,28 +114,6 @@ class StatisticService:
 class DoctorService:
     def __init__(self, session: AsyncSession):
         self.session = session
-
-    async def create_daily_schedule(self):
-        """Ежедневно добавляет расписание на следующий день"""
-        hours = range(8, 18)
-        next_day = date.today() + timedelta(days=1)
-        # next_day = date.today()
-
-        # Ищем доктора по специальности
-        result = await self.session.execute(select(Doctor))
-        doctors = result.scalars()
-
-        for doctor in doctors:
-            for hour in hours:
-                tm = time(hour, 0, 0)
-                date_time = datetime.combine(next_day, tm)
-                slot = DoctorSlot(
-                    doctor_id=doctor.id,
-                    time=date_time
-                )
-                self.session.add(slot)
-
-        await self.session.commit()
 
     async def get_schedule(self, *, doctor: str, dt):
         """Формирует свободное время доктора"""
@@ -168,3 +163,20 @@ class DoctorService:
 
         self.session.add(appointment)
         await self.session.commit()
+
+    async def check_sign_up(self, *, speciality: str, date_time: datetime) -> bool:
+        """Проверяет свободна ли запись к врачу"""
+        # Получаем id доктора по его специальности
+        doctor = await self.session.execute(
+            select(Doctor.id).where(Doctor.speciality == speciality))
+        doctor_id = doctor.scalar_one_or_none()
+
+        record = await self.session.execute(
+            select(DoctorSlot.is_available).
+            where(DoctorSlot.doctor_id == doctor_id, DoctorSlot.time == date_time)
+        )
+
+        is_available_record = record.scalar_one_or_none()
+        print(is_available_record)
+
+        return True if is_available_record else False

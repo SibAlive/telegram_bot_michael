@@ -1,5 +1,10 @@
 from aiogram.filters import BaseFilter
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
+
+from config import Config, load_config
+
+
+config: Config = load_config()
 
 
 class IsCorrectFullNameMessage(BaseFilter):
@@ -25,3 +30,10 @@ class ChooseTime(BaseFilter):
         if ':' in callback_query.data and callback_query.data.replace(':', '').isdigit():
             return True
         return False
+
+
+class IsAdminFilter(BaseFilter):
+    async def __call__(self, event: Message | CallbackQuery):
+        user_id = event.from_user.id
+        admin_ids = config.bot.admin_ids
+        return user_id in admin_ids

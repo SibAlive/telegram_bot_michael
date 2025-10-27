@@ -1,6 +1,4 @@
 import logging
-from aiogram.fsm.context import FSMContext
-from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 
 from lexicon import RU
@@ -80,3 +78,25 @@ def convert_str_to_time(dt, time_str: str):
     tm = datetime.strptime(time_str, "%H:%M").time()
     result = datetime.combine(dt, tm)
     return result
+
+
+async def send_test_message_broadcast(*, bot, chat_id, file_type, file_id, caption=None):
+    """Функция отправляет тестовое сообщение с файлом админу"""
+    if file_type == "photo":
+        return await bot.send_photo(
+            chat_id=chat_id,
+            photo=file_id,
+            caption=caption
+        )
+    elif file_type == "video":
+        return await bot.send_video(
+            chat_id=chat_id,
+            video=file_id,
+            caption=caption
+        )
+    elif file_type == "document":
+        return await bot.send_document(
+            chat_id=chat_id,
+            document=file_id,
+            caption=caption
+        )

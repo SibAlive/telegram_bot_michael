@@ -12,3 +12,12 @@ class DataForm(StatesGroup):
  # Форма заполнения услуги при обращении к врачу
 class ServiceFrom(StatesGroup):
     fill_service = State()
+
+
+# Форма массовой рассылки
+class BroadcastForm(StatesGroup):
+    choose = State() # Ожидаем выбор типа сообщения
+    message = State() # Ожидаем сообщение/описание
+    file = State() # Ожидаем фото, видео или документ
+    caption = State() # Ожидаем описание (опционально)
+    confirm = State()  # Ожидаем подтверждения отправки

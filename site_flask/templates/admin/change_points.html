@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Изменение баллов для {{ user.full_name }}</h2>
+<p><strong>Текущие баллы:</strong> {{ point.total_points if point else 0 }}</p>
+
+<form method="POST">
+
+    <div class="mb-3">
+        <label for="amount" class="form-label">Количество баллов</label>
+        <input type="number" class="form-control" id="amount" name="amount" min="1" required>
+    </div>
+
+    <div class="mb=3">
+        <lable class="form-label">Операция</lable><br>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="operation" id="op_add" value="add" checked>
+            <label class="form-check-label" for="op_add">Начислить</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="operation" id="op_sub" value="subtract">
+            <label class="form-check-label" for="op_sub">Списать</label>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Применить</button>
+    <a href="{{ url_for('points') }}" class="btn btn-secondary">Отмена</a>
+</form>
+
+<!-- Вывод flash-сообщений -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} mt-3">
+                 {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+{% endblock %}

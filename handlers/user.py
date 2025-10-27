@@ -49,7 +49,7 @@ async def process_start_command(
         await message.answer(text=RU.get('already_registered') + user_data)
 
     # Создаем главное меню
-    commands = keyboards.create_main_menu()
+    commands = keyboards.create_main_menu(user_id)
     await bot.set_my_commands(
         commands=commands,
         scope=BotCommandScopeChat(
@@ -166,17 +166,19 @@ async def process_service(message, session, state):
     speciality = data.get('doctor')
     doctor_service = DoctorService(session)
 
-    await doctor_service.sign_up_to_doctor(
-        telegram_id=message.from_user.id,
-        speciality=speciality,
-        service=message.text,
-        date_time=date_time,
-    )
-
-    await message.answer(text="Спасибо за обращение. Вы успешно записаны")
+    # Проверяем, свободно ли время
+    if await doctor_service.check_sign_up(speciality=speciality, date_time=date_time):
+        await doctor_service.sign_up_to_doctor(
+            telegram_id=message.from_user.id,
+            speciality=speciality,
+            service=message.text,
+            date_time=date_time,
+        )
+        await message.answer(text="Спасибо за обращение. Вы успешно записаны")
+    else:
+        # Уведомляем пользователя, что его время заняли пока он думал
+        await message.answer(text="Извините, но пока Вы писали причину посещения, выбранное время уже заняли")
     await state.set_state()
-
-
 
 
 # Нажатие инлайн кнопки Назад к дате

@@ -4,7 +4,7 @@ from datetime import datetime, date, time, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
-from models import Appoint, Doctor, DoctorSlot
+from models import Appoint, Doctor, DoctorSlot, Finance, Point
 
 
 logger = logging.getLogger(__name__)
@@ -30,14 +30,14 @@ async def create_daily_schedule(sessionmaker):
                 )
                 session.add(slot)
 
-    await session.commit()
+        await session.commit()
 
 
 async def send_daily_reminder_message(bot: Bot, sessionmaker):
     """Ежедневная задача: отправка сообщения клиенту
     в 10:00 о напоминании завтрашнего посещения"""
     now = datetime.now()
-    target_date = now + timedelta(hours=21)
+    target_date = now + timedelta(hours=10)
 
     # Запрос: найти все подтвержденные записи
     async with sessionmaker() as session:
@@ -76,6 +76,8 @@ async def send_daily_reminder_message(bot: Bot, sessionmaker):
 
 
 async def check_and_notify_accepted_appointments(bot: Bot, sessionmaker):
+    """Постоянно проверяет, отметил ли врач посещение
+    и отправляет клиенту анкету"""
     async with sessionmaker() as session:
         # Находим записи: accepted=True, notifies=False
         result = await session.execute(select(Appoint)
@@ -104,4 +106,46 @@ async def check_and_notify_accepted_appointments(bot: Bot, sessionmaker):
                 logger.error(f"Ошибка отправки подтверждения: {e}")
 
         if appointments:
+            await session.commit()
+
+
+async def check_and_notify_change_points(bot: Bot, sessionmaker):
+    """Постоянно проверяет изменение баллов и сообщает пользователю"""
+    async with sessionmaker() as session:
+        # Находим записи: notifies=False
+        result = await session.execute(select(Finance, Point)
+                .join(Point, Point.telegram_id == Finance.telegram_id)
+                .where(Finance.notified.is_(False))
+        )
+        finances = result.all()
+
+        for finance, point in finances:
+            try:
+                chat_id = finance.telegram_id
+                points = point.total_points
+
+                if finance.income_points and finance.expense_points:
+                    text = (f"✅Количество полученных баллов: {finance.income_points}!\n"
+                            f"❌Количество списанных баллов: {finance.expense_points}!\n"
+                            f"Общее количество баллов: {points}")
+                elif finance.income_points:
+                    text = (f"✅Вам начислено {finance.income_points} баллов!\n"
+                            f"Общее количество баллов: {points}")
+                elif finance.expense_points:
+                    text = (f"❌У Вас списано: {finance.expense_points} баллов!\n"
+                            f"Общее количество баллов: {points}")
+
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=text,
+                )
+                logger.info(f"Подтверждение отправлено пользователю {chat_id}")
+
+                # Помечаем, как обработанный
+                finance.notified = True
+                session.add(finance)
+            except Exception as e:
+                logger.error(f"Ошибка отправки подтверждения: {e}")
+
+        if finances:
             await session.commit()

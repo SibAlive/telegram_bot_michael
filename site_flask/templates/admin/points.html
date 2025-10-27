@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Управление баллами</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Телеграм ID</th>
+            <th><a href="{{ url_for('points',
+                            sort_by='full_name',
+                            order='asc' if sort_by != 'full_name' or order == 'desc' else 'desc') }}">
+                Клиент⬆️⬇️
+            </a>
+            </th>
+            <th><a href="{{ url_for('points',
+                            sort_by='total_points',
+                            order='asc' if sort_by != 'total_points' or order == 'desc' else 'desc') }}">
+                Количество баллов⬆️⬇️
+            </a>
+            </th>
+            <th></th>
+            <th>История</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user, total_points in users %}
+        <tr>
+            <td>{{ user.telegram_id }}</td>
+            <td>{{ user.full_name }}</td>
+            <td>{{ total_points if total_points else 0 }}</td>
+            <td><a href="{{ url_for('change_points', telegram_id=user.telegram_id) }}" class="btn btn-sm btn-outline-primary">Начислить/списать баллы</a></td>
+            <td><a href="{{ url_for('points_history', telegram_id=user.telegram_id) }}" class="btn btn-sm btn-outline-primary">История</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

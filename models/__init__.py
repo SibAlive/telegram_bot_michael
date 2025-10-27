@@ -1,2 +1,2 @@
-from .models import (Base, User, Finance, Point, Statistic,
+from .models import (User, Finance, Point, Statistic,
                      Appoint, Doctor, DoctorSlot)

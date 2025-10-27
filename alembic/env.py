@@ -8,7 +8,8 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # Импортируем db и модели
-from models import Base, User, Finance, Point, Statistic
+from site_flask import db
+from models import User, Finance, Point, Statistic, Appoint, Doctor, DoctorSlot
 
 # Импортируем URL из connections.py
 try:
@@ -27,7 +28,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Указываем метаданные для autogenerate
-target_metadata = Base.metadata
+target_metadata = db.metadata
 
 
 def include_object(object, name, type_, reflected, compare_to):

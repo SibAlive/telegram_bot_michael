@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>История начисления баллов для клиента {{ user_name }}</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Дата операции</th>
+            <th>Начислено</th>
+            <th>Списано</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <p class="text-end"><a href="{{ url_for('points') }}" class="btn btn-sm btn-outline-primary fs-4">Назад</a></p>
+
+        {% for finance in finances %}
+        <tr>
+            <td>{{ finance.date }}</td>
+            <td>{{ finance.income_points if finance.income_points else 0 }}</td>
+            <td>{{ finance.expense_points if finance.expense_points else 0 }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('delete_points_history', id=finance.id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Удалить запись?')">Удалить запись</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
