@@ -58,16 +58,4 @@ def create_app():
     app.add_url_rule('/toggle-accepted', 'toggle_accepted', toggle_accepted, methods=['POST'])
     app.add_url_rule('/appointment/delete/<int:id>', 'delete_record', delete_record, methods=['POST'])
 
-
-
-    # app.add_url_rule('/categories', 'categories', admin_required(categories), methods=['GET'])
-    # app.add_url_rule('/category/new', 'new_category', new_category, methods=['GET', 'POST'])
-    # app.add_url_rule('/category/edit/<int:id>', 'edit_category', edit_category, methods=['GET', 'POST'])
-    # app.add_url_rule('/category/delete/<int:id>', 'delete_category', delete_category, methods=['POST'])
-    #
-    # app.add_url_rule('/products', 'products', admin_required(products), methods=['GET'])
-    # app.add_url_rule('/product/new', 'new_product', new_product, methods=['GET', 'POST'])
-    # app.add_url_rule('/product/edit/<int:id>', 'edit_product', edit_product, methods=['GET', 'POST'])
-    # app.add_url_rule('/product/delete/<int:id>', 'delete_product', delete_product, methods=['POST'])
-
     return app

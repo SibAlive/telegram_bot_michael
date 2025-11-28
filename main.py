@@ -69,7 +69,7 @@ async def main() -> None:
     # Настройка и запуск планировщика
     scheduler = setup_scheduler(bot, AsyncSessionLocal, config.bot.timezone)
     scheduler.start()
-    logging.info("Планировщик запущен: задача 'daily_morning_message' активна.")
+    logging.info("Планировщик задач запущен")
 
 
     # Запускаем polling

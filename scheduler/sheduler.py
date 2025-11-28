@@ -15,7 +15,7 @@ def setup_scheduler(bot: Bot, session, timezone: str) -> AsyncIOScheduler:
     # Ежедневно отправляет напоминание о записи
     scheduler.add_job(
         send_daily_reminder_message,
-        trigger=CronTrigger(hour=19, minute=28, second=0),
+        trigger=CronTrigger(hour=19, minute=26, second=30),
         args=[bot, session], # Передаем переменные в функцию
         id="daily_reminder_message",
         replace_existing=True,
@@ -25,7 +25,7 @@ def setup_scheduler(bot: Bot, session, timezone: str) -> AsyncIOScheduler:
     # Ежедневно создает расписание врачей на следующий день
     scheduler.add_job(
         create_daily_schedule,
-        trigger=CronTrigger(hour=19, minute=27, second=0),
+        trigger=CronTrigger(hour=19, minute=25, second=0),
         args=[session],
         id="daily_schedule",
         replace_existing=True,

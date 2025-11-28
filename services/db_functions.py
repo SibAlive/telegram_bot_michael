@@ -173,10 +173,12 @@ class DoctorService:
 
         record = await self.session.execute(
             select(DoctorSlot.is_available).
-            where(DoctorSlot.doctor_id == doctor_id, DoctorSlot.time == date_time)
+            where(
+                DoctorSlot.doctor_id == doctor_id,
+                DoctorSlot.time == date_time).
+            with_for_update()
         )
 
         is_available_record = record.scalar_one_or_none()
-        print(is_available_record)
 
         return True if is_available_record else False
