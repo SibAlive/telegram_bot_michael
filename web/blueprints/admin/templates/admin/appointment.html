@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "macros/date_filter_form.html" import date_filter_form %}
+
+{% block content %}
+<h2>Управление записями на прием</h2>
+
+{# Форма фильтрации по дате #}
+{{ date_filter_form('admin.appointment', {'sort_by': sort_by, 'order': order}) }}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Телеграм ID</th>
+            <th><a href="{{ url_for('admin.appointment',
+                                    sort_by='full_name',
+                                    order='asc' if sort_by != 'full_name' or order == 'desc' else 'desc',
+                                    date=request.args.get('date')) }}">
+                Клиент⬆️⬇️
+            </a>
+            </th>
+            <th><a href="{{ url_for('admin.appointment',
+                                    sort_by='doctor',
+                                    order='asc' if sort_by != 'doctor' or order == 'desc' else 'desc',
+                                    date=request.args.get('date')) }}">Врач⬆️⬇️
+            </a>
+            </th>
+            <th><a href="{{ url_for('admin.appointment',
+                                    sort_by='time',
+                                    order='desc' if sort_by != 'time' or order == 'asc' else 'asc',
+                                    date=request.args.get('date')) }}">
+            Дата записи⬆️⬇️
+            </a>
+            </th>
+            <th>Описание</th>
+            <th><a href="{{ url_for('admin.appointment',
+                                sort_by='accepted',
+                                order='asc' if sort_by != 'accepted' or order == 'desc' else 'desc',
+                                date=request.args.get('date')) }}">
+                Принят?⬆️⬇️
+            </a>
+            </th>
+        </tr>
+    </thead>
+    <tbody id="table-body">
+        {% for user, appoint, doctor_slot, doctor in appointments %}
+            {% if doctor %}
+                <tr>
+                    <td>{{ user.telegram_id }}</td>
+                    <td>{{ user.full_name }}</td>
+                    <td><a href="{{ url_for('admin.records', doctor=doctor) }}" class="btn btn-sm btn-outline-primary">{{ doctor }}</a></td>
+                    <td>{{ doctor_slot.time }}</td>
+                    <td>{{ appoint.service }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.toggle_accepted') }}">
+                            <input type="hidden" name="appoint_id" value="{{ appoint.id }}">
+                            <select name="accepted" onchange="this.form.submit()">
+                                <option value="True" {% if appoint.accepted %}selected{% endif %}>Да</option>
+                                <option value="False" {% if not appoint.accepted %}selected{% endif %}>Нет</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.delete_record', id=appoint.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Удалить запись?')">Удалить запись</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

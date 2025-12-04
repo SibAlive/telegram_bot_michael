@@ -10,10 +10,10 @@ from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio import Redis
 
 from config import Config, load_config
-from services import AsyncSessionLocal, engine
-from handlers import router
-from middlewares import DataBaseMiddleware
-from scheduler import setup_scheduler
+from bot.services import AsyncSessionLocal, engine
+from bot.handlers import router
+from bot.middlewares import DataBaseMiddleware
+from bot.scheduler import setup_scheduler
 
 
 # Инициализируем логгер

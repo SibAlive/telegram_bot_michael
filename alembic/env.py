@@ -8,12 +8,11 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # Импортируем db и модели
-from site_flask import db
-from models import User, Finance, Point, Statistic, Appoint, Doctor, DoctorSlot
+from web import db
 
 # Импортируем URL из connections.py
 try:
-    from services import DATABASE_URL_FOR_ALEMBIC
+    from bot.services import DATABASE_URL_FOR_ALEMBIC
 except ImportError as e:
     raise ImportError(
         "Не удалось импортировать DATABASE_URL_FOR_FLASK из services.connections. "
@@ -33,7 +32,7 @@ target_metadata = db.metadata
 
 def include_object(object, name, type_, reflected, compare_to):
     """Пропускаем объекты, отмеченные как представления (view)"""
-    if hasattr(object, "info") and object.info.get("is_view", False):
+    if type_ == 'table' and getattr(object.info, "is_view", False):
         return False
     return True
 
