@@ -3,7 +3,7 @@ import logging
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from sqlalchemy import create_engine
 
-from config import Config, load_config
+from config.config import Config, load_config
 from web.extensions import db as database
 from web.url_creator import db_new, db_main, DATABASE_URL
 
@@ -50,7 +50,6 @@ def create_database_if_not_exists():
 def create_tables():
     """Создает таблицы, если их нет"""
     # Созданы будут лишь импортированные таблицы
-    from bot.models import User, Finance, Appoint, Statistic, Doctor, DoctorSlot
     engine = create_engine(DATABASE_URL, echo=True)
 
     # Создаем все таблицы

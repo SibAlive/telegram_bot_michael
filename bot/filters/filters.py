@@ -1,7 +1,7 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message, CallbackQuery
 
-from config import Config, load_config
+from config.config import Config, load_config
 
 
 config: Config = load_config()

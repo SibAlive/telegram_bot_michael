@@ -4,7 +4,7 @@ from sqlalchemy import select, update, func
 from datetime import datetime
 
 from bot.models import User, Point, Statistic, Appoint, Doctor, DoctorSlot
-from config import Config, load_config
+from config.config import Config, load_config
 
 
 config: Config = load_config()

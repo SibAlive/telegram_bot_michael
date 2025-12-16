@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, BotCommand
 
 from bot.lexicon import RU
-from config import Config, load_config
+from config.config import Config, load_config
 
 config: Config = load_config()
 admin_ids = config.bot.admin_ids

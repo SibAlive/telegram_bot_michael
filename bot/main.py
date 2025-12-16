@@ -9,7 +9,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio import Redis
 
-from config import Config, load_config
+from config.config import Config, load_config
 from bot.services import AsyncSessionLocal, engine
 from bot.handlers import router
 from bot.middlewares import DataBaseMiddleware
@@ -38,8 +38,8 @@ async def main() -> None:
             host=config.redis.host,
             port=config.redis.port,
             db=config.redis.db,
-            password=config.redis.password,
-            username=config.redis.username,
+            password=config.redis.password or None,
+            username=config.redis.username or None,
         )
     storage = RedisStorage(redis)
 
@@ -48,15 +48,14 @@ async def main() -> None:
         pong = await redis.ping()
         logger.info(f"Connection successful! PONG: {pong}")
     except Exception as e:
-        logger.info(f"Connection failed: {e}")
+        logger.error(f"Connection to Redis failed: {e}")
 
     # Инициализируем бот и диспетчер
     bot = Bot(
         token=config.bot.token,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
-    # dp = Dispatcher(storage=storage)
-    dp = Dispatcher()
+    dp = Dispatcher(storage=storage)
 
     # Регистрируем роутеры в диспетчере
     logger.info("Including routers...")

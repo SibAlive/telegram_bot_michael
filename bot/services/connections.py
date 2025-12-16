@@ -1,7 +1,7 @@
 import logging
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
-from config import Config, load_config
+from config.config import Config, load_config
 
 
 # Загрузка конфига
