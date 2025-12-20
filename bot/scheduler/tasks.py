@@ -35,9 +35,9 @@ async def create_daily_schedule(sessionmaker):
 
 async def send_daily_reminder_message(bot: Bot, sessionmaker):
     """Ежедневная задача: отправка сообщения клиенту
-    в 10:00 о напоминании завтрашнего посещения"""
+    в 18:00 о напоминании завтрашнего посещения"""
     now = datetime.now()
-    target_date = now + timedelta(hours=10)
+    target_date = now + timedelta(hours=1)
 
     # Запрос: найти все подтвержденные записи
     async with sessionmaker() as session:
