@@ -18,7 +18,7 @@ def create_app():
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     # Подключаем blueprints
-    app.register_blueprint(admin, url_prefix='/admin')
+    app.register_blueprint(admin, url_prefix='/michael')
 
     # Инициализируем расширения
     db.init_app(app)
