@@ -14,6 +14,7 @@ from bot.models import User, Point, Finance, Appoint, Doctor, DoctorSlot
 admin = Blueprint(
     'admin',
     __name__,
+    url_prefix='/michael',
     template_folder='templates',
     static_url_path='static',
 )
