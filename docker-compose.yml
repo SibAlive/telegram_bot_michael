@@ -27,8 +27,8 @@ services:
       - db
       - redis
     ports:
-      - "8001:8000"
-    command: ["waitress-serve", "--host=0.0.0.0", "--port=8080", "web.wsgi:application"]
+      - "5001:5000"
+    command: ["waitress-serve", "--host=0.0.0.0", "--port=5001", "web.wsgi:application"]
 
   bot:
     build: .
@@ -38,7 +38,10 @@ services:
     depends_on:
       - db
       - redis
+    ports:
+      - "8001:8000"
     command: ["python", "-m", "bot.main"]
+    restart: unless-stopped
 
 volumes:
   postgres_data:
