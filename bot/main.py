@@ -56,6 +56,7 @@ async def main() -> None:
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
     dp = Dispatcher(storage=storage)
+    # dp = Dispatcher()
 
     # Регистрируем роутеры в диспетчере
     logger.info("Including routers...")

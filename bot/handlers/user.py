@@ -127,7 +127,7 @@ async def process_doctor(callback_query: CallbackQuery, state):
 async def process_day_choose(callback_query, session, state):
     dt = date.today() if callback_query.data == 'Сегодня' else date.today() + timedelta(days=1)
     data = await state.get_data()
-    await state.update_data(dt=dt)
+    await state.update_data(dt=dt.isoformat())
     doctor = data.get('doctor')
     doctor_service = DoctorService(session)
 
