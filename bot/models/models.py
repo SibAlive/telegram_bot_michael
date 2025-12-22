@@ -105,10 +105,3 @@ class DoctorSlot(db.Model):
 
     doctor = relationship("Doctor", back_populates="slot")
     appointments = relationship("Appoint", back_populates="slot", cascade="all, delete-orphan")
-
-
-
-class Check(db.Model):
-    __tablename__ = "check"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    time = Column(DateTime, nullable=False)
