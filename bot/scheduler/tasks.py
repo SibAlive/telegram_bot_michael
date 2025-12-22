@@ -9,7 +9,7 @@ from bot.models import Appoint, Doctor, DoctorSlot, Finance, Point
 
 logger = logging.getLogger(__name__)
 
-#12312
+#123
 async def create_daily_schedule(sessionmaker):
     """Ежедневно добавляет расписание на следующий день"""
     hours = range(8, 18)
