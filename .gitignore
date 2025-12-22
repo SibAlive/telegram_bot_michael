@@ -37,6 +37,6 @@ pip-delete-this-directory.txt
 # aiogram / asyncio
 *.session
 
-# Alembic
-#alembic/
-#alembic.ini
+# Docker
+docker-compose.yml
+Dockerfile
