@@ -151,7 +151,7 @@ async def process_time_choose(callback_query, state):
     # date_time = convert_str_to_time(dt=dt, time_str=callback_query.data)
     date_time = dt + callback_query.data
     print(date_time)
-    await state.update_data(date_time=date_time.isoformat())
+    await state.update_data(date_time=date_time)
 
     await state.set_state(ServiceFrom.fill_service)
     await callback_query.message.edit_text(
