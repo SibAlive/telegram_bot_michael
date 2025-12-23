@@ -75,8 +75,9 @@ def convert_times(date_times):
 
 
 def convert_str_to_datetime(date_time_str: str):
-    result = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M")
-    return result
+    if ' ' in date_time_str:
+        date_time_str = date_time_str.replace(' ', 'T')
+    return datetime.fromisoformat(date_time_str)
 
 
 async def send_test_message_broadcast(*, bot, chat_id, file_type, file_id, caption=None):
