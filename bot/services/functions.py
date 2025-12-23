@@ -74,9 +74,8 @@ def convert_times(date_times):
     return result
 
 
-def convert_str_to_time(dt, time_str: str):
-    tm = datetime.strptime(time_str, "%H:%M").time()
-    result = datetime.combine(dt, tm)
+def convert_str_to_datetime(date_time_str: str):
+    result = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M")
     return result
 
 
