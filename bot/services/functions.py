@@ -74,10 +74,11 @@ def convert_times(date_times):
     return result
 
 
-def convert_str_to_datetime(date_time_str: str):
-    if ' ' in date_time_str:
-        date_time_str = date_time_str.replace(' ', 'T')
-    return datetime.fromisoformat(date_time_str)
+def convert_str_to_datetime(dt, tm: str):
+    dt = datetime.strptime(dt, "%Y-%m-%d")
+    tm = datetime.strptime(tm, "%H:%M").time()
+    result = datetime.combine(dt, tm)
+    return result
 
 
 async def send_test_message_broadcast(*, bot, chat_id, file_type, file_id, caption=None):

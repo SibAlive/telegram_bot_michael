@@ -147,9 +147,8 @@ async def process_day_choose(callback_query, session, state):
 @user_router.callback_query(ChooseTime())
 async def process_time_choose(callback_query, state):
     data = await state.get_data()
-    dt = data.get('dt')
-    date_time = f"{dt} {callback_query.data}"
-    await state.update_data(date_time=date_time)
+    tm = callback_query.data
+    await state.update_data(tm=tm)
 
     await state.set_state(ServiceFrom.fill_service)
     await callback_query.message.edit_text(
@@ -162,11 +161,11 @@ async def process_time_choose(callback_query, state):
 @user_router.message(ServiceFrom.fill_service, F.text)
 async def process_service(message, session, state):
     data = await state.get_data()
-    date_time_str = data.get('date_time')
+    dt, tm = data.get('dt'), data.get('tm')
     speciality = data.get('doctor')
     doctor_service = DoctorService(session)
 
-    date_time = convert_str_to_datetime(date_time_str)
+    date_time = convert_str_to_datetime(dt, tm)
 
     # Проверяем, свободно ли время
     if await doctor_service.check_sign_up(speciality=speciality, date_time=date_time):
