@@ -212,7 +212,7 @@ def create_app() -> web.Application:
     scheduler = setup_scheduler(bot, AsyncSessionLocal, config.bot.timezone)
 
     # Регистрируем события жизненного цикла
-    dp.startup.register(partial(on_startup, bot, config, redis))
+    dp.startup.register(partial(on_startup, bot, config, redis, scheduler))
     dp.shutdown.register(partial(on_shutdown, bot, scheduler))
 
     # Создаем объект aiohttp приложения
