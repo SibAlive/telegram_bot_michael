@@ -97,10 +97,8 @@
 
 
 """Запуск бота через WebHook на удаленном сервере, финальная версия"""
-import asyncio
 import logging
 import os
-import sys
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
@@ -122,10 +120,14 @@ from bot.scheduler import setup_scheduler
 logger = logging.getLogger(__name__)
 
 
-async def on_startup(bot: Bot, config: Config, redis: Redis) -> None:
+async def on_startup(bot, config, redis, scheduler) -> None:
     """Устанавливаем webhook при запуске"""
     webhook_url = config.webhook.base_url + config.webhook.path
     logger.info(f"Attempting to set webhook to: {webhook_url}")
+
+    # Запускаем планировщик задач
+    scheduler.start()
+    logging.info("Планировщик задач запущен")
 
     # Проверка подключения к Redis
     try:
@@ -206,10 +208,8 @@ def create_app() -> web.Application:
     logger.info("Including middlewares...")
     dp.update.middleware(DataBaseMiddleware())
 
-    # Настройка и запуск планировщика
+    # Инициализируем планировщик
     scheduler = setup_scheduler(bot, AsyncSessionLocal, config.bot.timezone)
-    scheduler.start()
-    logging.info("Планировщик задач запущен")
 
     # Регистрируем события жизненного цикла
     dp.startup.register(partial(on_startup, bot, config, redis))
