@@ -1,14 +1,12 @@
 """Маршруты для управления категориями и товарами"""
 from flask import redirect, url_for, render_template, flash, request, Blueprint
 from flask_httpauth import HTTPBasicAuth
-from sqlalchemy import select
-from datetime import datetime
 from functools import wraps
 
 from web.extensions import db
-from web.services import build_appointments_sort_column
 from web.url_creator import ADMIN_USERNAME, ADMIN_PASSWORD
-from bot.models import User, Point, Finance, Appoint, Doctor, DoctorSlot
+from web.service import (build_appointments_sort_column, change_user_points,
+                         PointService, AppointmentService)
 
 
 admin = Blueprint(
@@ -53,80 +51,55 @@ def index():
 """--- Управление баллами ---"""
 @admin.route('/points', methods=['GET'])
 def points():
+    point_service = PointService(db)
     sort_column, sort_by, order = build_appointments_sort_column('full_name')
 
-    users = db.session.execute(
-        select(User, Point.total_points)
-        .outerjoin(Point, Point.telegram_id == User.telegram_id)
-        .order_by(sort_column)).all()
-
+    users = point_service.get_users_list(sort_column=sort_column)
     return render_template(
                     'admin/points.html',
                     users=users,
                     sort_by=sort_by,
                     order=order
-    )
+                    )
 
 @admin.route('/points/<int:telegram_id>', methods=['GET', 'POST'])
 def change_points(telegram_id):
     """Меняет количество баллов клиенту"""
-    point_record = Point.query.filter_by(telegram_id=telegram_id).first()
     if request.method == 'POST':
-        try:
-            amount = int(request.form.get('amount', 0))
-            operation = request.form.get('operation') # 'add' или 'subtract'
-
-            if amount <= 0:
-                flash("Количество баллов должно быть положительным числом.", "danger")
-                return redirect(url_for('admin.change_points', telegram_id=telegram_id))
-
-            if operation == 'add':
-                change = Finance(
-                    telegram_id=telegram_id,
-                    income_points=amount,
-                )
-            elif operation == 'subtract':
-                if point_record.total_points < amount:
-                    flash("Недостаточно баллов для списания.", "warning")
-                    return redirect(url_for('admin.change_points', telegram_id=telegram_id))
-
-                change = Finance(
-                    telegram_id=telegram_id,
-                    expense_points=amount,
-                )
-
-            db.session.add(change)
-            db.session.commit()
-            flash(f"Баллы успешно {'начислены' if operation == 'add' else 'списаны'}.", "success")
-            return redirect(url_for('admin.points'))
-
-        except ValueError:
-            flash("Некорректное значение баллов", "danger")
+        is_changed = change_user_points(db=db, telegram_id=telegram_id)
+        if not is_changed:
             return redirect(url_for('admin.change_points', telegram_id=telegram_id))
+        return redirect(url_for('admin.points'))
 
     # GET: отображает форму
-    user = User.query.filter_by(telegram_id=telegram_id).first()
+    point_service = PointService(db)
+    user_points = point_service.get_user_points(telegram_id=telegram_id)
+    user = point_service.get_user_by_id(telegram_id=telegram_id)
 
-    return render_template('admin/change_points.html',point=point_record, user=user)
+    return render_template(
+        'admin/change_points.html',
+        point=user_points,
+        user=user
+    )
 
 
 @admin.route('/points/history/<int:telegram_id>', methods=['GET'])
 def points_history(telegram_id):
     """Показывает историю изменения баллов клиента"""
-    user = ((db.session.query(User)
-               .where(User.telegram_id == telegram_id))
-               .first())
+    point_service = PointService(db)
+    point_history, user_name = point_service.get_points_history(telegram_id=telegram_id)
 
-    finances = user.finance
-
-    return render_template('admin/points_history.html', finances=finances, user_name=user.full_name)
+    return render_template(
+        'admin/points_history.html',
+        finances=point_history,
+        user_name=user_name
+    )
 
 @admin.route('/points/delete/<int:id>', methods=['POST'])
-def delete_points_history(id):
-    """Удаляет запись к врачу"""
-    history = Finance.query.get_or_404(id)
-    db.session.delete(history)
-    db.session.commit()
+def delete_points_change(id):
+    """Удаляет запись об изменении количества баллов"""
+    point_service = PointService(db)
+    point_service.delete_points_change(id=id)
     flash("Запись удалена!", "success")
 
     referer = request.headers.get('Referer')  # Перенаправляем на страницу, откуда была нажата кнопка удалить
@@ -135,30 +108,16 @@ def delete_points_history(id):
 """--- Управление записями ---"""
 @admin.route('/appointment', methods=['GET'])
 def appointment():
+    """Возвращает все записи к врачам"""
+    appointment_service = AppointmentService(db)
     sort_column, sort_by, order = build_appointments_sort_column('time')
     # Получаем дату из параметров
     date_filter = request.args.get('date')
 
-    stmt = ((((select(User, Appoint, DoctorSlot, Doctor.speciality)
-        .outerjoin(Appoint, Appoint.telegram_id == User.telegram_id))
-        .outerjoin(DoctorSlot, DoctorSlot.id == Appoint.slot_id))
-        .outerjoin(Doctor, Doctor.id == DoctorSlot.doctor_id))
-        .order_by(sort_column))
-
-
-    # Фильтрация по дате
-    if date_filter:
-        try:
-            filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
-            # Фильтруем записи, где DoctorSlot.time попадает в эту дату
-            stmt = stmt.where(db.func.date(DoctorSlot.time) == filter_date
-            )
-        except ValueError:
-            # Игнорируем некорректную дату
-            pass
-
-    appointments = db.session.execute(stmt).all()
-
+    appointments = appointment_service.get_appointments(
+        sort_column=sort_column,
+        date_filter=date_filter
+    )
     return render_template(
                     'admin/appointment.html',
                     appointments=appointments,
@@ -169,31 +128,16 @@ def appointment():
 @admin.route('/records/<doctor>', methods=['GET'])
 def records(doctor=None):
     """Показывает все расписание выбранного врача"""
+    appointment_service = AppointmentService(db)
     sort_column, sort_by, order = build_appointments_sort_column('time')
     # Получаем дату из параметров
     date_filter = request.args.get('date')
 
-    query = (db.session.query(User, Appoint, DoctorSlot, Doctor.speciality)
-                .select_from(DoctorSlot)
-                .join(Doctor, Doctor.id == DoctorSlot.doctor_id)
-                .outerjoin(Appoint, Appoint.slot_id == DoctorSlot.id)
-                .outerjoin(User, User.telegram_id == Appoint.telegram_id)
-                .where(Doctor.speciality == doctor)
-                )
-
-    if date_filter:
-        try:
-            filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
-            # Фильтруем записи, где DoctorSlot.time попадает в эту дату
-            query = query.filter(
-                db.func.date(DoctorSlot.time) == filter_date
-            )
-        except ValueError:
-            # Игнорируем некорректную дату
-            pass
-
-    schedule = query.order_by(sort_column).all()
-
+    schedule = appointment_service.get_records(
+        doctor=doctor,
+        date_filter=date_filter,
+        sort_column=sort_column
+    )
     return render_template(
                 'admin/records.html',
                 schedule=schedule,
@@ -204,29 +148,24 @@ def records(doctor=None):
 
 @admin.route('/toggle-accepted', methods=['POST'])
 def toggle_accepted():
-    """Меняет значение столбца Appoint.accepted"""
+    """Меняет значение столбца Appoint.accepted (подтверждение приема пациента)"""
     appoint_id = request.form.get('appoint_id')
     accepted_str = request.form.get('accepted')
 
     # Преобразуем строку в булево значение
     accepted = accepted_str.lower() in ('да', 'true', '1', 'yes', 'on')
 
-    appoint = Appoint.query.get(appoint_id)
-    if appoint:
-        appoint.accepted = accepted
-        db.session.commit()
-        flash("Статус записи обновлен", "success")
-    else:
-        flash("Запись не найдена", "error")
+    appointment_service = AppointmentService(db)
+    appointment_service.confirm_acceptance(appoint_id=appoint_id, accepted=accepted)
+    flash("Статус записи обновлен", "success")
 
     return redirect(url_for('admin.appointment'))
 
 @admin.route('/appointment/delete/<int:id>', methods=['POST'])
 def delete_record(id):
     """Удаляет запись к врачу"""
-    record = Appoint.query.get_or_404(id)
-    db.session.delete(record)
-    db.session.commit()
+    appointment_service = AppointmentService(db)
+    appointment_service.delete_records(id=id)
     flash("Запись удалена!", "success")
 
     referer = request.headers.get('Referer') # Перенаправляем на страницу, откуда была нажата кнопка удалить

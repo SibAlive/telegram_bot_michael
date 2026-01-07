@@ -21,7 +21,7 @@
             <td>{{ finance.income_points if finance.income_points else 0 }}</td>
             <td>{{ finance.expense_points if finance.expense_points else 0 }}</td>
             <td>
-                <form method="POST" action="{{ url_for('admin.delete_points_history', id=finance.id) }}" style="display:inline;">
+                <form method="POST" action="{{ url_for('admin.delete_points_change', id=finance.id) }}" style="display:inline;">
                     <button type="submit" class="btn btn-sm btn-outline-danger"
                     onclick="return confirm('Удалить запись?')">Удалить запись</button>
                 </form>
